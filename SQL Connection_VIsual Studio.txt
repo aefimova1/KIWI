@@ -1,0 +1,2 @@
+SQLTools Odbc
+Driver={SQL Server};server=VHACDWA01.VHA.MED.VA.GOV;database=VHA104_Finance;trusted_connection=Yes;
