@@ -7,10 +7,10 @@ SELECT
     Value / 1000 AS Value,  -- Divide by 1000
     -- DirectCommunity
     CASE 
-        WHEN Category LIKE '%Total Surplus/Need - CurrentGP - Community Care%' THEN 'Community'
+        WHEN Category LIKE '%Community Care - All%' THEN 'Community'
         WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN ''
         ELSE 'Direct Care'
-    END AS DirectCommunity,
+    END AS [Direct/Community],
     -- Appropriation
     CASE 
         WHEN Category LIKE '%Medical Services%' THEN 'Medical Services'
@@ -26,9 +26,14 @@ SELECT
         WHEN Category LIKE '%Personal Services%' THEN 'Personal Services'
         WHEN Category LIKE '%Pharmacy (2631, 2636)%' THEN 'Pharmacy'
         WHEN Category LIKE '%Contracts%' THEN 'Contracts'
-        WHEN Category LIKE '%All Other%' THEN 'All Other'
+        WHEN Category LIKE '%Direct Care - All Other%' THEN 'Direct Care - All Other'
         WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN 'Community Care'
         WHEN Category LIKE '%CMOP%' THEN 'CMOP'
+        WHEN Category LIKE '%Outpatient%' THEN 'Outpatient'
+	    WHEN Category LIKE '%Inpatient%' THEN 'Inpatient'
+	    WHEN Category LIKE '%Dental%' THEN 'Dental'
+		WHEN Category LIKE '%Community Care - All Other%' THEN 'Community Care - All Other'
+
         ELSE ''
     END AS CostDriver,
     -- Collections/Reimbursables
@@ -46,12 +51,17 @@ SELECT
     CASE 
         WHEN Category LIKE '%YTDAllocationsVERA%' THEN Value
         ELSE NULL
-    END AS YTD_Allocated,
+    END AS [YTD Allocated],
     -- Obligations_YTD
     CASE 
         WHEN Category LIKE '%ObligationsYTD%' THEN Value
         ELSE NULL
-    END AS Obligations_YTD,
+    END AS [Obligation YTD],
+	-- Obligations_PYTD
+    CASE 
+        WHEN Category LIKE '%ObligationsPYTD%' THEN Value
+        ELSE NULL
+    END AS [Obligation PYTD],
 	-- Plan
     CASE 
         WHEN Category LIKE '%CMOP%' THEN NULL
@@ -64,10 +74,25 @@ SELECT
         WHEN Category LIKE '%Medical Services%' 
           OR Category LIKE '%SupportCompliance%' 
           OR Category LIKE '%Facilities%' 
-          OR Category LIKE '%Total Surplus/Need - CurrentGP - Community Care%' 
+          OR Category LIKE '%Community Care - All%'
         THEN Value
         ELSE NULL
-    END AS Surplus_Need,
+    END AS [Surplus/Need],
+	-- Projected
+	CASE 
+        WHEN Category LIKE '%Projection%' THEN Value
+        ELSE NULL  -- Otherwise, return NULL
+    END AS [Projection],
+    -- Expected
+	CASE 
+        WHEN Category LIKE '%Expected%' THEN Value
+        ELSE NULL  -- Otherwise, return NULL
+    END AS [Expected],
+	-- AmountYTD
+	CASE 
+        WHEN Category LIKE '%AmountYTD%' THEN Value
+        ELSE NULL  -- Otherwise, return NULL
+    END AS [Amount YTD],
 	-- Medical Services
     CASE 
         WHEN Category LIKE '%Medical Services%' 
@@ -92,13 +117,13 @@ SELECT
         THEN Value
         ELSE NULL
     END AS [Medical Community Care]
-FROM 
-    (SELECT 
-        [Month], 
-        [VISN], 
+FROM
+    (SELECT
+        [Month],
+        [VISN],
         [Commentary - Initiatives],
         [Commentary - Executive Level Commentary],
-        -- All columns that need to be unpivoted
+        -- Original columns
         [Direct Care - YTDAllocationsVERA],
         [Direct Care - Collections - Projection],
         [Direct Care - Collections - Expected],
@@ -143,9 +168,13 @@ FROM
         [Community Care - Inpatient - ObligationsPYTD],
         [Community Care - Dental - ObligationsPYTD],
         [Community Care - All Other - ObligationsPYTD],
-        [Community Care - All Other - ObligationsYTD]
+        [Community Care - All Other - ObligationsYTD],
+        CAST(ISNULL([Community Care - YTDAllocationsVERA], 0) +  
+        ISNULL([Community Care - MCCF - Projection], 0) -  
+        ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - All]
+
     FROM [VHA104_Finance].[App].[VISN_Input_Main]) AS SourceTable
-UNPIVOT 
+UNPIVOT
     (Value FOR Category IN (
         [Direct Care - YTDAllocationsVERA],
         [Direct Care - Collections - Projection],
@@ -182,5 +211,15 @@ UNPIVOT
         [Total Surplus/Need - CurrentGP - Facilities],
         [Total Surplus/Need - CurrentSP - Medical Services],
         [Total Surplus/Need - CurrentSP - SupportCompliance],
-        [Total Surplus/Need - CurrentSP - Facilities]
+        [Total Surplus/Need - CurrentSP - Facilities],
+        [Direct Care - All Other - ObligationsYTD],
+        [Community Care - TotalGP - GrowthYTD],
+        [Direct Care - Pharmacy (CMOP) - GrowthYTD],
+        [Direct Care - All Other - GrowthYTD],
+        [Community Care - Outpatient - ObligationsPYTD],
+        [Community Care - Inpatient - ObligationsPYTD],
+        [Community Care - Dental - ObligationsPYTD],
+        [Community Care - All Other - ObligationsPYTD],
+        [Community Care - All Other - ObligationsYTD],
+        [Community Care - All]  -- Include the new calculated column
     )) AS UnpivotedTable;
