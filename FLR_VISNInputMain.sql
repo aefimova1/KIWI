@@ -7,7 +7,7 @@ SELECT
     Value / 1000 AS Value,  -- Divide by 1000
     -- DirectCommunity
     CASE 
-        WHEN Category LIKE '%Community Care - All%' THEN 'Community'
+        WHEN Category LIKE '%Community Care%' THEN 'Community Care'
         WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN ''
         ELSE 'Direct Care'
     END AS [Direct/Community],
@@ -54,7 +54,7 @@ SELECT
     END AS [YTD Allocated],
     -- Obligations_YTD
     CASE 
-        WHEN Category LIKE '%ObligationsYTD%' THEN Value
+        WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value
         ELSE NULL
     END AS [Obligation YTD],
 	-- Obligations_PYTD
@@ -71,10 +71,10 @@ SELECT
     END AS [Plan],
     -- Surplus/Need
     CASE 
-        WHEN Category LIKE '%Medical Services%' 
-          OR Category LIKE '%SupportCompliance%' 
-          OR Category LIKE '%Facilities%' 
-          OR Category LIKE '%Community Care - All%'
+        WHEN Category LIKE '%CurrentGP - Medical Services%' 
+          OR Category LIKE '%CurrentGP - SupportCompliance%' 
+          OR Category LIKE '%CurrentGP - Facilities%' 
+          OR Category LIKE '%Community Care - Supplus/Need%'
         THEN Value
         ELSE NULL
     END AS [Surplus/Need],
@@ -171,7 +171,7 @@ FROM
         [Community Care - All Other - ObligationsYTD],
         CAST(ISNULL([Community Care - YTDAllocationsVERA], 0) +  
         ISNULL([Community Care - MCCF - Projection], 0) -  
-        ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - All]
+        ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - Supplus/Need]
 
     FROM [VHA104_Finance].[App].[VISN_Input_Main]) AS SourceTable
 UNPIVOT
@@ -221,5 +221,5 @@ UNPIVOT
         [Community Care - Dental - ObligationsPYTD],
         [Community Care - All Other - ObligationsPYTD],
         [Community Care - All Other - ObligationsYTD],
-        [Community Care - All]  -- Include the new calculated column
+        [Community Care - Supplus/Need]  -- Include the new calculated column
     )) AS UnpivotedTable;
