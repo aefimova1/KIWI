@@ -176,9 +176,14 @@ FROM
         [Community Care - Dental - ObligationsPYTD],
         [Community Care - All Other - ObligationsPYTD],
         [Community Care - All Other - ObligationsYTD],
+
         CAST(ISNULL([Community Care - YTDAllocationsVERA], 0) +  
         ISNULL([Community Care - MCCF - Projection], 0) -  
-        ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - Surplus/Need]
+        ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - Surplus/Need],
+
+		CAST(ISNULL([Direct Care - Personal Services - ObligationsYTD],0) / (ISNULL([Direct Care - Personal Services - GrowthYTD], 0)/1000 + 1) AS DECIMAL(18,2))
+        AS [Direct Care - Personal Services - ObligationsPYTD]
+
 
     FROM [VHA104_Finance].[App].[VISN_Input_Main]) AS SourceTable
 UNPIVOT
@@ -228,5 +233,7 @@ UNPIVOT
         [Community Care - Dental - ObligationsPYTD],
         [Community Care - All Other - ObligationsPYTD],
         [Community Care - All Other - ObligationsYTD],
-        [Community Care - Surplus/Need]  -- Include the new calculated column
+		-- Include the new calculated columns
+        [Community Care - Surplus/Need],
+		[Direct Care - Personal Services - ObligationsPYTD]
     )) AS UnpivotedTable;
