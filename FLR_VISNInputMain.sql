@@ -28,6 +28,7 @@ SELECT
         WHEN Category LIKE '%Contracts%' THEN 'Contracts'
         WHEN Category LIKE '%Direct Care - All Other%' THEN 'Direct Care - All Other'
         WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN 'Community Care'
+		WHEN Category LIKE '%Community Care - TotalGP - ObligationsYTD%' THEN 'Community Care'
         WHEN Category LIKE '%CMOP%' THEN 'CMOP'
         WHEN Category LIKE '%Outpatient%' THEN 'Outpatient'
 	    WHEN Category LIKE '%Inpatient%' THEN 'Inpatient'
@@ -49,24 +50,30 @@ SELECT
     END AS MCCF,
     -- YTD_Allocated
     CASE 
-        WHEN Category LIKE '%YTDAllocationsVERA%' THEN Value
+        WHEN Category LIKE '%YTDAllocationsVERA%' THEN Value /1000
         ELSE NULL
     END AS [YTD Allocated],
-    -- Obligations_YTD
+    -- Obligations_YTD_Totals
     CASE 
-        WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value
+        WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value /1000
         ELSE NULL
     END AS [Obligation YTD],
+	-- Obligations_YTD_Cost_Drivers
+    CASE 
+        WHEN Category LIKE '%ObligationsYTD%' THEN Value /1000
+		WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value /1000
+        ELSE NULL
+    END AS [Obligation YTD_Cost_Drivers],
 	-- Obligations_PYTD
     CASE 
-        WHEN Category LIKE '%ObligationsPYTD%' THEN Value
+        WHEN Category LIKE '%ObligationsPYTD%' THEN Value /1000
         ELSE NULL
     END AS [Obligation PYTD],
 	-- Plan
     CASE 
-        WHEN Category LIKE '%CMOP%' THEN NULL
-        WHEN Category LIKE '%Plan%' THEN Value
-        WHEN Category LIKE '%Community Care%' THEN Value
+        WHEN Category LIKE '%(CMOP) - Plan%' THEN Value /1000
+        WHEN Category LIKE '%Plan%' THEN Value /1000
+        WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN Value /1000
         ELSE NULL  -- Otherwise, return NULL
     END AS [Plan],
     -- Surplus/Need
@@ -74,47 +81,47 @@ SELECT
         WHEN Category LIKE '%CurrentGP - Medical Services%' 
           OR Category LIKE '%CurrentGP - SupportCompliance%' 
           OR Category LIKE '%CurrentGP - Facilities%' 
-          OR Category LIKE '%Community Care - Supplus/Need%'
-        THEN Value
+          OR Category LIKE '%Community Care - Surplus/Need%'
+        THEN Value /1000
         ELSE NULL
     END AS [Surplus/Need],
 	-- Projected
 	CASE 
-        WHEN Category LIKE '%Projection%' THEN Value
+        WHEN Category LIKE '%Projection%' THEN Value / 1000
         ELSE NULL  -- Otherwise, return NULL
     END AS [Projection],
     -- Expected
 	CASE 
-        WHEN Category LIKE '%Expected%' THEN Value
+        WHEN Category LIKE '%Expected%' THEN Value / 1000
         ELSE NULL  -- Otherwise, return NULL
     END AS [Expected],
 	-- AmountYTD
 	CASE 
-        WHEN Category LIKE '%AmountYTD%' THEN Value
+        WHEN Category LIKE '%AmountYTD%' THEN Value / 1000
         ELSE NULL  -- Otherwise, return NULL
     END AS [Amount YTD],
 	-- Medical Services
     CASE 
         WHEN Category LIKE '%Medical Services%' 
-        THEN Value
+        THEN Value / 1000
         ELSE NULL
     END AS [Medical Services],
 	-- Support & Compliance
 	CASE 
-        WHEN Category LIKE '%SupportCompliance%' 
-        THEN Value
+        WHEN Category LIKE '%CurrentGP - SupportCompliance%' 
+        THEN Value / 1000
         ELSE NULL
     END AS [Support & Compliance],
 	-- Facilities
 	CASE 
         WHEN Category LIKE '%Facilities%' 
-        THEN Value
+        THEN Value / 1000
         ELSE NULL
     END AS [Facilities],
 	-- Community Care
 		CASE 
-        WHEN Category LIKE '%Community Care%' 
-        THEN Value
+        WHEN Category LIKE '%Community Care - Surplus/Need%' 
+        THEN Value / 1000
         ELSE NULL
     END AS [Medical Community Care]
 FROM
@@ -171,7 +178,7 @@ FROM
         [Community Care - All Other - ObligationsYTD],
         CAST(ISNULL([Community Care - YTDAllocationsVERA], 0) +  
         ISNULL([Community Care - MCCF - Projection], 0) -  
-        ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - Supplus/Need]
+        ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - Surplus/Need]
 
     FROM [VHA104_Finance].[App].[VISN_Input_Main]) AS SourceTable
 UNPIVOT
@@ -221,5 +228,5 @@ UNPIVOT
         [Community Care - Dental - ObligationsPYTD],
         [Community Care - All Other - ObligationsPYTD],
         [Community Care - All Other - ObligationsYTD],
-        [Community Care - Supplus/Need]  -- Include the new calculated column
+        [Community Care - Surplus/Need]  -- Include the new calculated column
     )) AS UnpivotedTable;
