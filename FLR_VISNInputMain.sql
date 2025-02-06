@@ -29,6 +29,7 @@ SELECT
         WHEN Category LIKE '%Direct Care - All Other%' THEN 'Direct Care - All Other'
         WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN 'Community Care'
 		WHEN Category LIKE '%Community Care - TotalGP - ObligationsYTD%' THEN 'Community Care'
+		WHEN Category LIKE '%Community Care - TotalGP - ObligationsPYTD%' THEN 'Community Care' 
         WHEN Category LIKE '%CMOP%' THEN 'CMOP'
         WHEN Category LIKE '%Outpatient%' THEN 'Outpatient'
 	    WHEN Category LIKE '%Inpatient%' THEN 'Inpatient'
@@ -194,8 +195,14 @@ FROM
         AS [Direct Care - All Other - ObligationsPYTD],
 
 		CAST(ISNULL([Direct Care - Pharmacy (2631, 2636) - ObligationsYTD],0) / (ISNULL([Direct Care - Pharmacy (2631, 2636) - GrowthYTD], 0) + 1) AS DECIMAL(18,2))
-        AS [Direct Care - Pharmacy (2631, 2636) - ObligationsPYTD]
+        AS [Direct Care - Pharmacy (2631, 2636) - ObligationsPYTD],
 
+		CAST(
+        ISNULL([Community Care - Outpatient - ObligationsPYTD], 0) +
+        ISNULL([Community Care - Inpatient - ObligationsPYTD], 0) +
+        ISNULL([Community Care - Dental - ObligationsPYTD], 0) +
+        ISNULL([Community Care - All Other - ObligationsPYTD], 0)
+    AS DECIMAL(18,2)) AS [Community Care - TotalGP - ObligationsPYTD]
 
     FROM [VHA104_Finance].[App].[VISN_Input_Main]) AS SourceTable
 UNPIVOT
@@ -251,5 +258,6 @@ UNPIVOT
 		[Direct Care - CMOP - ObligationsPYTD],
 		[Direct Care - Contracts - ObligationsPYTD],
 		[Direct Care - All Other - ObligationsPYTD],
-		[Direct Care - Pharmacy (2631, 2636) - ObligationsPYTD]
+		[Direct Care - Pharmacy (2631, 2636) - ObligationsPYTD],
+		[Community Care - TotalGP - ObligationsPYTD]
     )) AS UnpivotedTable;
