@@ -181,19 +181,19 @@ FROM
         ISNULL([Community Care - MCCF - Projection], 0) -  
         ISNULL([Community Care - TotalGP - Plan], 0) AS DECIMAL(18,2)) AS [Community Care - Surplus/Need],
 
-		CAST(ISNULL([Direct Care - Personal Services - ObligationsYTD],0) / (ISNULL([Direct Care - Personal Services - GrowthYTD], 0)/1000 + 1) AS DECIMAL(18,2))
+		CAST(ISNULL([Direct Care - Personal Services - ObligationsYTD],0) / (ISNULL([Direct Care - Personal Services - GrowthYTD], 0)+ 1) AS DECIMAL(18,2))
         AS [Direct Care - Personal Services - ObligationsPYTD],
 
-		CAST(ISNULL([Direct Care - Pharmacy (CMOP) - ObligationsYTD],0) / (ISNULL([Direct Care - Pharmacy (CMOP) - GrowthYTD], 0)/1000 + 1) AS DECIMAL(18,2))
+		CAST(ISNULL([Direct Care - Pharmacy (CMOP) - ObligationsYTD],0) / (ISNULL([Direct Care - Pharmacy (CMOP) - GrowthYTD], 0) + 1) AS DECIMAL(18,2))
         AS [Direct Care - CMOP - ObligationsPYTD],
 
-		CAST(ISNULL([Direct Care - Contracts - ObligationsYTD],0) / (ISNULL([Direct Care - Contracts - GrowthYTD], 0)/1000 + 1) AS DECIMAL(18,2))
+		CAST(ISNULL([Direct Care - Contracts - ObligationsYTD],0) / (ISNULL([Direct Care - Contracts - GrowthYTD], 0) + 1) AS DECIMAL(18,2))
         AS [Direct Care - Contracts - ObligationsPYTD],
 
-		CAST(ISNULL([Direct Care - All Other - ObligationsYTD],0) / (ISNULL([Direct Care - All Other - GrowthYTD], 0)/1000 + 1) AS DECIMAL(18,2))
+		CAST(ISNULL([Direct Care - All Other - ObligationsYTD],0) / (ISNULL([Direct Care - All Other - GrowthYTD], 0) + 1) AS DECIMAL(18,2))
         AS [Direct Care - All Other - ObligationsPYTD],
 
-		CAST(ISNULL([Direct Care - Pharmacy (2631, 2636) - ObligationsYTD],0) / (ISNULL([Direct Care - Pharmacy (2631, 2636) - GrowthYTD], 0)/1000 + 1) AS DECIMAL(18,2))
+		CAST(ISNULL([Direct Care - Pharmacy (2631, 2636) - ObligationsYTD],0) / (ISNULL([Direct Care - Pharmacy (2631, 2636) - GrowthYTD], 0) + 1) AS DECIMAL(18,2))
         AS [Direct Care - Pharmacy (2631, 2636) - ObligationsPYTD]
 
 
