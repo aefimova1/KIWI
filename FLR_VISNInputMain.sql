@@ -1,10 +1,10 @@
 SELECT 
-    [Month], 
+    CAST(FORMAT(Month, 'yyyy-MM-dd')AS DATE) AS Month,
     [VISN], 
     [Commentary - Initiatives],
     [Commentary - Executive Level Commentary],
     Category, 
-    Value / 1000 AS Value,  -- Divide by 1000
+    Value,
     -- DirectCommunity
     CASE 
         WHEN Category LIKE '%Community Care%' THEN 'Community Care'
@@ -21,6 +21,10 @@ SELECT
     END AS Appropriation,
     -- GP_SP with a fixed value of 'GP'
     'GP' AS GP_SP,
+	-- Core/Non-Core with a fixed value of 'NON CORE'
+    'NON CORE' AS [Core/Non-Core],
+	-- VISN/AUSH with a fixed value of 'VISN'
+    'VISN' AS [VISN/AUSH],
     -- CostDriver
     CASE 
         WHEN Category LIKE '%Personal Services%' THEN 'Personal Services'
@@ -51,78 +55,112 @@ SELECT
     END AS MCCF,
     -- YTD_Allocated
     CASE 
-        WHEN Category LIKE '%YTDAllocationsVERA%' THEN Value /1000
+        WHEN Category LIKE '%YTDAllocationsVERA%' THEN Value
         ELSE NULL
     END AS [YTD Allocated],
     -- Obligations_YTD_Totals
     CASE 
-        WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value /1000
+        WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value
         ELSE NULL
     END AS [Obligation YTD],
 	-- Obligations_YTD_Cost_Drivers
     CASE 
-        WHEN Category LIKE '%ObligationsYTD%' THEN Value /1000
-		WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value /1000
+        WHEN Category LIKE '%ObligationsYTD%' THEN Value
+		WHEN Category LIKE '%TotalGP - ObligationsYTD%' THEN Value
         ELSE NULL
     END AS [Obligation YTD_Cost_Drivers],
 	-- Obligations_PYTD
     CASE 
-        WHEN Category LIKE '%ObligationsPYTD%' THEN Value /1000
+        WHEN Category LIKE '%ObligationsPYTD%' THEN Value
         ELSE NULL
     END AS [Obligation PYTD],
 	-- Plan
     CASE 
-        WHEN Category LIKE '%(CMOP) - Plan%' THEN Value /1000
-        WHEN Category LIKE '%Plan%' THEN Value /1000
-        WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN Value /1000
+        WHEN Category LIKE '%(CMOP) - Plan%' THEN Value
+        WHEN Category LIKE '%Plan%' THEN Value
+        WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
     END AS [Plan],
+	-- Plan_CostDriver_View
+	CASE
+	    WHEN Category LIKE '%Plan%' THEN Value
+		ELSE NULL
+	END AS Plan_CostDriver_View,
+	-- Projection
+	    CASE 
+        WHEN Category LIKE '%CMOP' THEN NULL
+        WHEN Category LIKE '%Plan%' THEN Value
+        ELSE NULL  -- Otherwise, return NULL
+    END AS [Projection],
+	-- Surplus/Need_Total column using the new Value column
+    CASE 
+        WHEN Category LIKE '%CurrentGP - Medical Services%' THEN 1
+        WHEN Category LIKE '%SCurrentGP - SupportCompliance%' THEN 1
+        WHEN Category LIKE '%CurrentGP - Facilities%' THEN 1
+        WHEN Category LIKE '%Community Care - Surplus/Need%' THEN 1
+        ELSE 0
+    END AS [Surplus/Need_Total],
+
+	    -- Surplus/Need_Direct column using the new Value column
+    CASE 
+        WHEN Category LIKE '%CurrentGP - Medical Services%' THEN 1
+        WHEN Category LIKE '%CurrentGP - SupportCompliance%' THEN 1
+        WHEN Category LIKE '%CurrentGP - Facilities%' THEN 1
+        ELSE 0
+    END AS [Surplus/Need_Direct],
+
+		-- Surplus/Need_Community column using the new Value column
+    CASE 
+        WHEN Category LIKE '%Community Care - Surplus/Need%' THEN 1
+        ELSE 0
+    END AS [Surplus/Need_Community],
     -- Surplus/Need
     CASE 
         WHEN Category LIKE '%CurrentGP - Medical Services%' 
           OR Category LIKE '%CurrentGP - SupportCompliance%' 
           OR Category LIKE '%CurrentGP - Facilities%' 
           OR Category LIKE '%Community Care - Surplus/Need%'
-        THEN Value /1000
+        THEN Value
         ELSE NULL
     END AS [Surplus/Need],
+
 	-- Projected
 	CASE 
-        WHEN Category LIKE '%Projection%' THEN Value / 1000
+        WHEN Category LIKE '%Projection%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
-    END AS [Projection],
+    END AS [Projected],
     -- Expected
 	CASE 
-        WHEN Category LIKE '%Expected%' THEN Value / 1000
+        WHEN Category LIKE '%Expected%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
     END AS [Expected],
 	-- AmountYTD
 	CASE 
-        WHEN Category LIKE '%AmountYTD%' THEN Value / 1000
+        WHEN Category LIKE '%AmountYTD%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
     END AS [Amount YTD],
 	-- Medical Services
     CASE 
         WHEN Category LIKE '%Medical Services%' 
-        THEN Value / 1000
+        THEN Value
         ELSE NULL
     END AS [Medical Services],
 	-- Support & Compliance
 	CASE 
         WHEN Category LIKE '%CurrentGP - SupportCompliance%' 
-        THEN Value / 1000
+        THEN Value
         ELSE NULL
     END AS [Support & Compliance],
 	-- Facilities
 	CASE 
         WHEN Category LIKE '%Facilities%' 
-        THEN Value / 1000
+        THEN Value
         ELSE NULL
     END AS [Facilities],
 	-- Community Care
 		CASE 
         WHEN Category LIKE '%Community Care - Surplus/Need%' 
-        THEN Value / 1000
+        THEN Value
         ELSE NULL
     END AS [Medical Community Care]
 FROM

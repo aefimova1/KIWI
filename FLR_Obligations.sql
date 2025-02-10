@@ -73,8 +73,8 @@ FMSData AS (
     AND CONCAT([Progcode], [Sub Prog], [Org Code], [Act Code]) NOT LIKE 'LG5082S__'
     
     OR (
-        [FUNDID] = '0140%'
-        OR [FUNDID] = '1126C5%'
+        [FUNDID] LIKE '0140%'
+        OR [FUNDID] LIKE '1126C5%'
     )
     AND CONCAT([Progcode], [Sub Prog], [Org Code], [Act Code]) NOT LIKE 'SPW0FP7%'
     THEN 'GP'
@@ -82,7 +82,7 @@ FMSData AS (
     ELSE 'SP'
 END AS GP_SP,
         CASE
-            WHEN [FUNDID] LIKE '0140%' OR [FUNDID] LIKE '1126C5%' THEN 'Community'
+            WHEN [FUNDID] LIKE '0140%' OR [FUNDID] LIKE '1126C5%' THEN 'Community Care'
             WHEN [FUNDID] LIKE '0152%' OR
                  [FUNDID] LIKE '0160%' OR
                  [FUNDID] LIKE '0162%' OR
@@ -90,7 +90,7 @@ END AS GP_SP,
 				 [FUNDID] LIKE '1126MS%' OR
 				 [FUNDID] LIKE '1126S5%' OR
 				 [FUNDID] LIKE '1126SC%'
-				 THEN 'Direct'
+				 THEN 'Direct Care'
             ELSE NULL
         END AS Direct_Community,
         DATEFROMPARTS(
@@ -116,18 +116,18 @@ SELECT
     CASE
         WHEN [BOC Lvl2] LIKE '(1000-1099) Personnel Services'
              AND GP_SP = 'GP'
-             AND Direct_Community = 'Direct' THEN 1
+             AND Direct_Community = 'Direct Care' THEN 1
         ELSE 0
     END AS Is_Personal_Services,
 	CASE
         WHEN GP_SP = 'GP'
-             AND Direct_Community = 'Direct'
+             AND Direct_Community = 'Direct Care'
              AND TRY_CAST(BOCID AS INT) IN (2631, 2636) THEN 1
         ELSE 0
     END AS Is_Pharmacy,
     CASE
         WHEN GP_SP = 'GP'
-             AND Direct_Community = 'Direct'
+             AND Direct_Community = 'Direct Care'
              AND [VACCID 6] LIKE '8224__%'
              AND [Transaction Code] = 'SE'
              AND TRY_CAST(BOCID AS INT) = 2572 THEN 1
@@ -135,25 +135,25 @@ SELECT
     END AS Is_CMOP,
     CASE
         WHEN GP_SP = 'GP'
-             AND Direct_Community = 'Direct'
+             AND Direct_Community = 'Direct Care'
              AND [BOC Lvl3] LIKE '(2500-2599) Other Contractual Services' THEN 1
         ELSE 0
     END AS Is_Contracts,
     CASE
         WHEN GP_SP = 'GP'
-             AND Direct_Community = 'Community'
+             AND Direct_Community = 'Community Care'
              AND [Account Classification Code] LIKE 'SPW0APG__%' THEN 1
         ELSE 0
     END AS Is_Outpatient,
     CASE
         WHEN GP_SP = 'GP'
-             AND Direct_Community = 'Community'
+             AND Direct_Community = 'Community Care'
              AND [Account Classification Code] LIKE 'SPW0APF__%' THEN 1
         ELSE 0
     END AS Is_Inpatient,
     CASE
         WHEN GP_SP = 'GP'
-             AND Direct_Community = 'Community'
+             AND Direct_Community = 'Community Care'
              AND [Account Classification Code] LIKE 'SPW0APR__%' THEN 1
         ELSE 0
     END AS Is_Dental,
@@ -254,6 +254,4 @@ LEFT JOIN [VHA104_Finance].[CDR].[ACC_Crosswalk] acc
     ON fms.[Account Classification Code] = acc.[ACC]
 LEFT OUTER JOIN CleanedDistinctOffices AS ST 
     ON fms.[Parent Facility District] = ST.[887 Stn]
-WHERE YEAR(fms.[Fiscal Date]) >= (MaxYear - 2);
-
-END
+WHERE YEAR(fms.[Fiscal Date]) >= (MaxYear - 3);
