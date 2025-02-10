@@ -9,12 +9,41 @@ SELECT
     
     -- GP_SP column with only value 'SP'
     'SP' AS GP_SP,
+
+	-- Core/Non-Core column with only value 'NON CORE'
+    'NON CORE' AS [Core/Non-Core],
+
+	-- VISN/AUSH column with only value 'VISN'
+    'VISN' AS [VISN/AUSH],
     
     -- Direct/Community column based on Appropriation
     CASE 
         WHEN [Appropriation] LIKE '%Medical Community Care%' THEN 'Community Care'
         ELSE 'Direct Care'
-    END AS [Direct/Community],   
+    END AS [Direct/Community], 
+	
+	    -- Surplus/Need_Total column using the new Value column
+    CASE 
+        WHEN [Appropriation] LIKE '%Medical Services%' THEN 1
+        WHEN [Appropriation] LIKE '%Support and Compliance%' THEN 1
+        WHEN [Appropriation] LIKE '%Facilities%' THEN 1
+        WHEN [Appropriation] LIKE '%Medical Community Care%' THEN 1
+        ELSE 0
+    END AS [Surplus/Need_Total],
+
+	    -- Surplus/Need_Direct column using the new Value column
+    CASE 
+        WHEN [Appropriation] LIKE '%Medical Services%' THEN 1
+        WHEN [Appropriation] LIKE '%Support and Compliance%' THEN 1
+        WHEN [Appropriation] LIKE '%Facilities%' THEN 1
+        ELSE 0
+    END AS [Surplus/Need_Direct],
+
+		-- Surplus/Need_Community column using the new Value column
+    CASE 
+        WHEN [Appropriation] LIKE '%Medical Community Care%' THEN 1
+        ELSE 0
+    END AS [Surplus/Need_Community],
  
     -- Surplus/Need column using the new Value column
     CASE 
