@@ -14,9 +14,9 @@ SELECT
     -- Appropriation
     CASE 
         WHEN Category LIKE '%Medical Services%' THEN 'Medical Services'
-        WHEN Category LIKE '%SupportCompliance%' THEN 'Support and Compliance'
+        WHEN Category LIKE '%CurrentGP - SupportCompliance%' THEN 'Support and Compliance'
         WHEN Category LIKE '%Facilities%' THEN 'Facilities'
-        WHEN Category LIKE '%Community Care%' THEN 'Medical Community Care'
+        WHEN Category LIKE '%Community Care - Surplus/Need%' THEN 'Medical Community Care'
         ELSE ''
     END AS Appropriation,
     -- GP_SP with a fixed value of 'GP'
@@ -76,7 +76,7 @@ SELECT
     END AS [Obligation PYTD],
 	-- Plan
     CASE 
-        WHEN Category LIKE '%(CMOP) - Plan%' THEN Value
+        WHEN Category LIKE '%(CMOP) - Plan%' THEN NULL
         WHEN Category LIKE '%Plan%' THEN Value
         WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
@@ -88,8 +88,8 @@ SELECT
 	END AS Plan_CostDriver_View,
 	-- Projection
 	    CASE 
-        WHEN Category LIKE '%CMOP' THEN NULL
-        WHEN Category LIKE '%Plan%' THEN Value
+        WHEN Category LIKE '%(CMOP) - Plan%' THEN NULL
+        WHEN Category LIKE '%Plan%'  AND Category NOT LIKE '%CMOP%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
     END AS [Projection],
 	-- Surplus/Need_Total column using the new Value column

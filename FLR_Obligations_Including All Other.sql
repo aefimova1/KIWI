@@ -1,6 +1,15 @@
 WITH MaxYearCTE AS (
-   SELECT MAX(CAST(SUBSTRING([FY], 3, 2) AS INT)) AS MaxYear
-FROM [VHA104_Finance].[CDR].[FMS830887]
+    SELECT MAX(YEAR(
+        DATEFROMPARTS(
+            CASE
+                WHEN [FMO] >= 10 THEN CAST(SUBSTRING([FY], 3, 2) AS INT) + 2000
+                ELSE CAST(SUBSTRING([FY], 3, 2) AS INT) + 2000
+            END,
+            [FMO],
+            1
+        )
+    )) AS MaxYear
+    FROM [VHA104_Finance].[CDR].[FMS830887]
 ),
 CleanedDistinctOffices AS (
     SELECT DISTINCT 
@@ -93,7 +102,6 @@ END AS GP_SP,
             1
         ) AS [Fiscal Date]
     FROM [VHA104_Finance].[CDR].[FMS830887]
-	CROSS JOIN MaxYearCTE
     WHERE
         [VA Cost Ctr_2] IN ('80', '82', '83', '84', '85', '86')
         AND ([FUNDID] LIKE '0140__' OR [FUNDID] LIKE '0152__' OR [FUNDID] LIKE '0160__' OR [FUNDID] LIKE '0162__' OR [FUNDID] LIKE '1126__')
@@ -101,9 +109,9 @@ END AS GP_SP,
         AND [FUNDID] NOT LIKE '1126RD%'
         AND [Sta6a ID] NOT IN ('742', '777', '962')
         AND [BOC Lvl1] LIKE 'Personal Services & All Other'
-		AND CAST(SUBSTRING([FY], 3, 2) AS INT) >= (MaxYear-3)
-)
-SELECT 
+),
+CategorizedData AS (
+    SELECT 
     fms.*,
 	ST.[Standard Data Rollup Group],
     CASE
@@ -242,7 +250,34 @@ SELECT
     END AS Appropriation,
     acc.[core noncore]
 FROM FMSData AS fms
+CROSS JOIN MaxYearCTE
 LEFT JOIN [VHA104_Finance].[CDR].[ACC_Crosswalk] acc 
     ON fms.[Account Classification Code] = acc.[ACC]
 LEFT OUTER JOIN CleanedDistinctOffices AS ST 
     ON fms.[Parent Facility District] = ST.[887 Stn]
+WHERE YEAR(fms.[Fiscal Date]) >= (MaxYear - 3)
+)
+SELECT *,
+    CASE 
+        WHEN Is_Prosthetics = 0
+            AND Is_Trainees = 0
+            AND Is_Homeless_Veterans = 0
+            AND Is_Transplants = 0
+            AND Is_Suicide_Prevention = 0
+            AND Is_Caregiver = 0
+            AND Is_Station_Level = 0
+            AND Is_Rural_Health = 0
+            AND Is_Activations = 0
+            AND Is_NRM = 0
+            AND Is_State_Home = 0
+			AND Is_Personal_Services = 0
+			AND Is_Pharmacy = 0
+			AND Is_CMOP = 0
+			AND Is_Contracts = 0
+			AND Is_Outpatient = 0
+			AND Is_Inpatient = 0
+			AND Is_Dental = 0
+        THEN 1 
+        ELSE 0 
+    END AS Is_Other_SP
+FROM CategorizedData;
