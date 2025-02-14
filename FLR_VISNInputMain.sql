@@ -76,7 +76,7 @@ SELECT
     END AS [Obligation PYTD],
 	-- Plan
     CASE 
-        WHEN Category LIKE '%(CMOP) - Plan%' THEN NULL
+        WHEN Category LIKE '%(CMOP) - Plan%' THEN Value
         WHEN Category LIKE '%Plan%' THEN Value
         WHEN Category LIKE '%Community Care - TotalGP - Plan%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
@@ -88,8 +88,8 @@ SELECT
 	END AS Plan_CostDriver_View,
 	-- Projection
 	    CASE 
-        WHEN Category LIKE '%(CMOP) - Plan%' THEN NULL
-        WHEN Category LIKE '%Plan%'  AND Category NOT LIKE '%CMOP%' THEN Value
+  
+        WHEN Category LIKE '%Plan%'  AND Category NOT LIKE '%(CMOP) - Plan%' THEN Value
         ELSE NULL  -- Otherwise, return NULL
     END AS [Projection],
 	-- Surplus/Need_Total column using the new Value column
