@@ -27,7 +27,30 @@ SELECT
         WHEN Attribute LIKE 'SurplusNeedMedicalCommunityCare'
         THEN 1 
         ELSE 0 
-    END AS [Surplus/Need_Community]  -- Adding the Surplus/Need_Community column
+    END AS [Surplus/Need_Community],  -- Adding the Surplus/Need_Community column
+	-- Medical Survices Surplus/Need
+	  CASE 
+        WHEN Attribute LIKE 'SurplusNeedMedicalServices' THEN Value
+        ELSE NULL
+    END AS [Medical Services],
+
+		-- Support and Compliance Surplus/Need
+	  CASE 
+         WHEN Attribute LIKE 'SurplusNeedSupportAndCompliance' THEN Value
+        ELSE NULL
+    END AS [Support & Compliance],
+
+	-- Facilities Surplus/Need
+	  CASE 
+        WHEN Attribute LIKE 'SurplusNeedFacilities' THEN Value
+        ELSE NULL
+    END AS [Facilities],
+
+	-- Medical Community Care Surplus/Need
+	  CASE 
+        WHEN Attribute LIKE 'SurplusNeedMedicalCommunityCare' THEN Value
+        ELSE NULL
+    END AS [Medical Community Care]
 FROM 
     (  
         SELECT  
@@ -39,7 +62,7 @@ FROM
             SurplusNeedSupportAndCompliance,  
             SurplusNeedFacilities,  
             SurplusNeedMedicalCommunityCare  
-        FROM [VHA104_Finance].[App].[AUSH_Inpits-Surplus/Need_by_Appropriation]  
+        FROM [VHA104_Finance].[App].[AUSH_Inpits_Surplus/Need_by_Appropriation]  
     ) AS SourceTable
 UNPIVOT  
     (  
